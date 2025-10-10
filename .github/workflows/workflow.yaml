@@ -21,16 +21,15 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build services
-        run: docker-compose build
-
-      - name: Run tests
+        env:
+          MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
+          MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
         run: |
-          docker-compose up -d
-          sleep 10
-          docker ps
-          docker-compose logs
-          # You can add curl or npm test commands here if app exposes APIs
+          docker-compose build
           docker-compose down
+          docker-compose up -d
+          docker ps
+          docker-compose logs          
 
   deploy:
     runs-on: self-hosted
