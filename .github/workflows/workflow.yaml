@@ -1,49 +1,47 @@
-name: CI + Local CD Pipeline
+name: CI/CD for Docker Compose App
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  # --------------------------
-  # 🧪 Continuous Integration
-  # --------------------------
-  test:
+  build-test-push:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
 
-      - name: Install dependencies
-        run: npm install
+      - name: Build services
+        run: docker-compose build
 
       - name: Run tests
-        run: npm test
+        run: |
+          docker-compose up -d
+          sleep 10
+          docker ps
+          docker-compose logs
+          # You can add curl or npm test commands here if app exposes APIs
+          docker-compose down
 
-  # --------------------------
-  # 🚀 Continuous Deployment (Local)
-  # --------------------------
-  deploy-local:
-    # Make sure CD runs *after* CI passes
-    needs: test
-    # IMPORTANT: change to 'self-hosted' if you plan to deploy locally on your own PC
+  deploy:
     runs-on: self-hosted
+    needs: build-test-push
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build and Run Locally
+      - name: Deploy locally
         shell: bash
         run: |
-          docker-compose build -t simple-express-ci-cd:latest .
-          docker-compose stop simpleapp || true
-          docker-compose up -d -p 3001:3000 --name simpleapp simple-express-ci-cd:latest
+          echo "Deploying latest stack..."
+          docker-compose down
+          docker-compose up -d --build
+          docker ps
+
 
   cleanup:
     runs-on: self-hosted
