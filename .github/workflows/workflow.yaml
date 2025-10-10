@@ -38,6 +38,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Debug env
+        run: |
+          echo "User: $MONGO_ADMIN_USER"
+          echo "Pass: $MONGO_ADMIN_PASS"
+
       - name: Deploy locally
         shell: bash
         run: |
