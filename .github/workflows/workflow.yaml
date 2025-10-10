@@ -41,6 +41,8 @@ jobs:
       - name: Deploy locally
         shell: bash
         run: |
+          export MONGO_ADMIN_USER=$MONGO_ADMIN_USER
+          export MONGO_ADMIN_PASS=$MONGO_ADMIN_PASS
           echo "Deploying latest stack..."
           docker-compose down
           docker-compose up -d --build
