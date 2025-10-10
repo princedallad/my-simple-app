@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-test-push:
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,42 +17,42 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      - name: Set up Docker
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build services
-        env:
-          MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
-          MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
+      - name: Create .env file from secrets
+        run: |
+          echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
+          echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
+          cat .env  # for confirmation (GitHub masks the secret values)
+
+      - name: Build and run app
         run: |
           docker-compose build
           docker-compose down
           docker-compose up -d
           docker ps
-          docker-compose logs          
+          docker-compose logs
 
   deploy:
     runs-on: self-hosted
-    needs: build-test-push
+    needs: build-test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug env
+      - name: Recreate .env file from secrets
         run: |
-          echo "User: $MONGO_ADMIN_USER"
-          echo "Pass: $MONGO_ADMIN_PASS"
+          echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
+          echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
 
-      - name: Deploy locally
+      - name: Deploy locally (self-hosted runner)
         shell: bash
         run: |
-          export MONGO_ADMIN_USER=$MONGO_ADMIN_USER
-          export MONGO_ADMIN_PASS=$MONGO_ADMIN_PASS
           echo "Deploying latest stack..."
           docker-compose down
           docker-compose up -d --build
           docker ps
-
 
   cleanup:
     runs-on: self-hosted
@@ -64,3 +64,81 @@ jobs:
           echo "Cleaning up runner workspace..."
           cd ~/actions-runner/_work
           rm -rf *
+
+
+
+
+
+
+
+
+
+
+
+
+# name: CI/CD for Docker Compose App
+
+# on:
+#   push:
+#     branches: [ main ]
+
+# jobs:
+#   build-test-push:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Install Docker Compose
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y docker-compose
+
+#       - name: Set up Docker
+#         uses: docker/setup-buildx-action@v3
+
+#       - name: Build services
+#         env:
+#           MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
+#           MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
+#         run: |
+#           docker-compose build
+#           docker-compose down
+#           docker-compose up -d
+#           docker ps
+#           docker-compose logs          
+
+#   deploy:
+#     runs-on: self-hosted
+#     needs: build-test-push
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Debug env
+#         run: |
+#           echo "User: $MONGO_ADMIN_USER"
+#           echo "Pass: $MONGO_ADMIN_PASS"
+
+#       - name: Deploy locally
+#         shell: bash
+#         run: |
+#           export MONGO_ADMIN_USER=$MONGO_ADMIN_USER
+#           export MONGO_ADMIN_PASS=$MONGO_ADMIN_PASS
+#           echo "Deploying latest stack..."
+#           docker-compose down
+#           docker-compose up -d --build
+#           docker ps
+
+
+#   cleanup:
+#     runs-on: self-hosted
+#     needs: deploy
+#     if: always()
+#     steps:
+#       - name: Cleanup workspace
+#         run: |
+#           echo "Cleaning up runner workspace..."
+#           cd ~/actions-runner/_work
+#           rm -rf *
