@@ -45,7 +45,7 @@ jobs:
 
   cleanup:
     runs-on: self-hosted
-    needs: deploy-local
+    needs: deploy
     if: always()
     steps:
       - name: Cleanup workspace
