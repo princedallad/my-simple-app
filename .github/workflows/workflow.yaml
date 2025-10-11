@@ -52,7 +52,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-        shell: bash
+        # shell: bash
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
