@@ -40,8 +40,7 @@ jobs:
         run: |
           echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
           echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
-
-      # - name: Deploy locally
+ 
         # env:
         #   MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
         #   MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
@@ -51,8 +50,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-        # shell: bash
+          
+      - name: Deploy locally
+        shell: bash
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
