@@ -57,7 +57,7 @@ jobs:
           echo "Deploying latest stack..."
           docker system prune -af
           docker compose down
-          docker build -t princedallad/my-simple-app:latest .
+          docker build -t up -d princedallad/my-simple-app:latest .
           docker push princedallad/my-simple-app:latest
 
 
