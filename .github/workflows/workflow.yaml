@@ -46,7 +46,7 @@ jobs:
         #   MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
         #   MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
 
-        name: Log in to Docker Hub
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
