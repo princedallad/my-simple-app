@@ -4,7 +4,7 @@ services:
   my-app:
     build: .
     ports:
-      - 3000:3000
+      - 3001:3000
     environment:
       MONGO_DB_USERNAME: ${MONGO_ADMIN_USER}
       MONGO_DB_PWD: ${MONGO_ADMIN_PASS}
@@ -25,6 +25,9 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ADMIN_USER}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ADMIN_PASS}
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_ADMIN_USER}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_ADMIN_PASS}
+
       ME_CONFIG_MONGODB_SERVER: mongodb
     depends_on:
       - mongodb
