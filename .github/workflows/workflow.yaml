@@ -50,15 +50,15 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          
+
       - name: Deploy locally
         shell: bash
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
           docker compose down
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/princedallad/my-simple-app:latest .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/princedallad/my-simple-app:latest
+          docker build -t princedallad/my-simple-app:latest .
+          docker push princedallad/my-simple-app:latest
 
 
   cleanup:
