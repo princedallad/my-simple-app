@@ -25,9 +25,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build services
-        # env:
-        #   MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
-        #   MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
+        
         run: |
           docker-compose build
           docker-compose down
@@ -44,12 +42,15 @@ jobs:
 
 
       - name: Deploy locally
+        env:
+          MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
+          MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
         shell: bash
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
-          docker-compose down
-          docker-compose up -d --build
+          docker-compose --env-file .env down
+          docker-compose --env-file .env up -d --build
           docker ps
 
 
