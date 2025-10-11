@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
-          docker push
+          docker compose push
           docker compose down
           docker compose pull
           docker compose up -d
