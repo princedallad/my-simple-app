@@ -40,15 +40,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file for production
+        run: |
+          echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
+          echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
 
       - name: Deploy locally
-        env:
-          MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
-          MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
+        # env:
+        #   MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
+        #   MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
         shell: bash
         run: |
-          echo "Deploying latest stack..."
-          cd $GITHUB_WORKSPACE
           echo "Deploying latest stack..."
           docker system prune -af
           docker-compose --env-file .env down
