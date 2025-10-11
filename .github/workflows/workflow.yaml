@@ -48,6 +48,8 @@ jobs:
         shell: bash
         run: |
           echo "Deploying latest stack..."
+          cd $GITHUB_WORKSPACE
+          echo "Deploying latest stack..."
           docker system prune -af
           docker-compose --env-file .env down
           docker-compose --env-file .env up -d --build
