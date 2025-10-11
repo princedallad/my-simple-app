@@ -56,10 +56,11 @@ jobs:
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
+          docker push
           docker compose down
-          docker build -t up -d princedallad/my-simple-app:latest .
-          docker push princedallad/my-simple-app:latest
-
+          docker compose pull
+          docker compose up -d
+          docker ps
 
   cleanup:
     runs-on: self-hosted
