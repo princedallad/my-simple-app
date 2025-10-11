@@ -53,8 +53,8 @@ jobs:
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
-          docker-compose --env-file .env down
-          docker-compose --env-file .env up -d --build
+          docker-compose down
+          docker-compose up -d --build
           docker ps
 
 
