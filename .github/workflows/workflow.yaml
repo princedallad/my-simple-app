@@ -41,7 +41,7 @@ jobs:
           echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
           echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
 
-      - name: Deploy locally
+      # - name: Deploy locally
         # env:
         #   MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
         #   MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
