@@ -45,13 +45,20 @@ jobs:
         # env:
         #   MONGO_ADMIN_USER: ${{ secrets.MONGO_ADMIN_USER }}
         #   MONGO_ADMIN_PASS: ${{ secrets.MONGO_ADMIN_PASS }}
+
+        name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
         shell: bash
         run: |
           echo "Deploying latest stack..."
           docker system prune -af
           docker compose down
-          docker compose up -d --build
-          docker ps
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/princedallad/my-simple-app:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/princedallad/my-simple-app:latest
 
 
   cleanup:
@@ -64,3 +71,5 @@ jobs:
           echo "Cleaning up runner workspace..."
           cd ~/actions-runner/_work
           rm -rf *
+
+  

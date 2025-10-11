@@ -3,6 +3,7 @@ version: '3.8'
 services:
   my-app:
     build: .
+    image: princedallad/my-simple-app:latest
     ports:
       - 3001:3000
     environment:
@@ -30,3 +31,7 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongodb
     depends_on:
       - mongodb
+
+volumes:
+  mongo_data: 
+  app_logs:
