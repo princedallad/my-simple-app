@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Validate Compose file
+        run: docker compose config
+
       - name: Install Docker Compose
         run: |
           sudo apt-get update
@@ -44,12 +47,11 @@ jobs:
         shell: bash
         run: |
           echo "Deploying latest stack..."
+          docker system prune -af
           docker-compose down
           docker-compose up -d --build
           docker ps
 
-# export MONGO_ADMIN_USER=$MONGO_ADMIN_USER
-#           export MONGO_ADMIN_PASS=$MONGO_ADMIN_PASS
 
   cleanup:
     runs-on: self-hosted
