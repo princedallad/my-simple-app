@@ -36,12 +36,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # - name: Create .env file for production and set IMAGE_TAG
-      #   shell: bash
-      #   run: |
-      #     # The GITHUB_RUN_NUMBER is automatically available in the workflow context
-      #     IMAGE_TAG=${{ github.run_number }}
-
       - name: Create .env file for production
         shell: bash
         run: |
@@ -56,16 +50,25 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Deploy locally
+      - name: Build, push, and deploy
         shell: bash
         run: |
           echo "Deploying latest stack..."
+
+          export IMAGE_TAG=$(grep IMAGE_TAG .env | cut -d '=' -f2)
+
           docker system prune -af
-          docker compose build --build-arg IMAGE_TAG=$(cat .env | grep IMAGE_TAG | cut -d '=' -f2)
+          
+          # Build the image, passing the IMAGE_TAG as a build argument
+          docker compose build --build-arg IMAGE_TAG=${IMAGE_TAG}
+
+          # Push the uniquely tagged image to Docker Hub
+          docker compose push
+          
+          # Now, deploy using the .env file for runtime variables
           docker compose --env-file .env down
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
-          docker ps
 
   cleanup:
     runs-on: self-hosted
