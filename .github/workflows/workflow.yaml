@@ -62,10 +62,9 @@ jobs:
           echo "Deploying latest stack..."
           docker system prune -af
           docker compose build --build-arg IMAGE_TAG=$(cat .env | grep IMAGE_TAG | cut -d '=' -f2)
-          docker compose push
-          docker compose down
-          docker compose pull
-          docker compose up -d
+          docker compose --env-file .env down
+          docker compose --env-file .env pull
+          docker compose --env-file .env up -d
           docker ps
 
   cleanup:
