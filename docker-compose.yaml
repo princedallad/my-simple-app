@@ -3,7 +3,7 @@ version: '3.8'
 services:
   my-app:
     build: .
-    image: princedallad/my-simple-app:1.0
+    image: princedallad/my-simple-app:1.1
     ports:
       - 3001:3000
     environment:
