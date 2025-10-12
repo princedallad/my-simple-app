@@ -2,12 +2,8 @@ version: '3.8'
 
 services:
   my-app:
-    build: 
-      context: .
-      # Define the build argument
-      args:
-        - IMAGE_TAG
-    image: princedallad/my-simple-app:${IMAGE_TAG}
+    build: .
+    image: princedallad/my-simple-app:1.0
     ports:
       - 3001:3000
     environment:
