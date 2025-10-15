@@ -55,21 +55,20 @@ jobs:
         run: |
           echo "Deploying latest stack..."
 
-          # Read the IMAGE_TAG from the .env file and store it in a shell variable
+          # Read IMAGE_TAG from .env
           IMAGE_TAG=$(grep IMAGE_TAG .env | cut -d '=' -f2)
 
-          docker system prune -af
-          
-          # Build the image, passing IMAGE_TAG as a build argument
-          docker compose build --build-arg IMAGE_TAG=${IMAGE_TAG}
+          # Build using .env variables
+          docker compose --env-file .env build --build-arg IMAGE_TAG=${IMAGE_TAG}
 
-          # Push the uniquely tagged image to Docker Hub
-          docker compose push
-          
-          # Use --env-file explicitly for runtime commands
+          # Push using .env variables (ensures tags and env vars align)
+          docker compose --env-file .env push
+
+          # Deploy using the same .env file
           docker compose --env-file .env down
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
+
           
   cleanup:
     runs-on: self-hosted
