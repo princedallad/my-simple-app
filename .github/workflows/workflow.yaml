@@ -68,20 +68,17 @@ jobs:
           source .env
           set +a
 
-          echo "Using image tag: ${IMAGE_TAG}"
+          IMAGE_TAG=$(echo $GITHUB_SHA | cut -c1-7)
+          echo "Using tag: $IMAGE_TAG"
 
-          # Optional cleanup
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
           docker system prune -af
-
-          # Build and push images using .env file
-          docker compose --env-file .env build
-          docker compose --env-file .env push
-
-          # Recreate containers from the new image
-          docker compose --env-file .env down
-          docker compose --env-file .env pull
-          docker compose --env-file .env up -d
-
+          docker compose build --build-arg IMAGE_TAG=$IMAGE_TAG
+          docker compose push
+          docker compose down
+          docker compose pull
+          docker compose up -d
           echo "Deployment completed successfully!"
 
   # -----------------------------
