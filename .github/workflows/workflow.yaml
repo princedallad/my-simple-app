@@ -31,55 +31,53 @@ jobs:
   # -----------------------------
   # 2️⃣ Deploy (runs on self-hosted runner / Azure VM)
   # -----------------------------
+   # The entire deployment process is consolidated into one job
   deploy:
     runs-on: self-hosted
-    needs: build-test
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Create .env file dynamically for production
-      - name: Create .env file
-        shell: bash
-        run: |
-          COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-          echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
-          echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
-          echo "IMAGE_TAG=${COMMIT_SHA}" >> .env
-          echo "Generated .env file:"
-          cat .env
-
-      # Log in to Docker Hub
+      # Log in to Docker Hub early to authenticate all subsequent docker commands
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Build, Push, and Deploy the latest container stack
+      # Build, Push, and Deploy the latest container stack in a single step
       - name: Build, push, and deploy
         shell: bash
         run: |
           echo "Starting deployment..."
           
-          # Export .env variables to current shell session
-          set -a
-          source .env
-          set +a
+          # Create .env file for production and set the unique image tag
+          COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
+          echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
+          echo "IMAGE_TAG=${COMMIT_SHA}" >> .env
+          echo "Generated .env file:"
+          cat .env
+          
+          # Explicitly set the IMAGE_TAG in the shell for the build command
+          export IMAGE_TAG=$(grep IMAGE_TAG .env | cut -d '=' -f2)
 
-          IMAGE_TAG=$(echo $GITHUB_SHA | cut -c1-7)
-          echo "Using tag: $IMAGE_TAG"
-
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-
+          # Clean up old containers and images
           docker system prune -af
+          
+          # Build the images, passing the IMAGE_TAG as a build argument
           docker compose build --build-arg IMAGE_TAG=$IMAGE_TAG
+          
+          # Push the newly built image to Docker Hub
           docker compose push
-          docker compose down
-          docker compose pull
-          docker compose up -d
+          
+          # Use the .env file for all subsequent runtime commands
+          docker compose --env-file .env down
+          docker compose --env-file .env pull
+          docker compose --env-file .env up -d
+          
           echo "Deployment completed successfully!"
+          docker ps
 
   # -----------------------------
   # 3️⃣ Cleanup Runner Workspace
