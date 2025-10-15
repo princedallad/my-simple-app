@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   my-app:
-    image: princedallad/my-simple-app:${IMAGE_TAG}
+    image: princedallad/my-simple-app:${IMAGE_TAG:-latest}
     build: 
       context: .
       args:
-       IMAGE_TAG: ${IMAGE_TAG}
+       IMAGE_TAG: ${IMAGE_TAG:-latest}
     ports:
       - 3001:3000
     environment:
