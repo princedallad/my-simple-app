@@ -18,15 +18,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker images
+      - name: Build and push Docker images
         shell: bash
         run: |
+          echo "Building and pushing images..."
           COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
           docker compose build --build-arg IMAGE_TAG=$COMMIT_SHA
-      
-      - name: Push images to Docker Hub
-        run: docker compose push
-      
+          docker compose push
+
       - name: Add SSH host key to known_hosts
         run: |
           mkdir -p ~/.ssh
@@ -43,15 +42,19 @@ jobs:
           echo "Connecting to Azure VM: ${{ secrets.SSH_HOST }}"
           
           COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-          DEPLOY_DIR="~/my-simple-app"
+          DEPLOY_DIR="/home/${{ secrets.SSH_USER }}/my-simple-app"
+          
+          # Create directory if it doesn't exist
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ${DEPLOY_DIR}"
           
           # Use scp to copy the entire codebase to the remote VM
-          scp -r . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${DEPLOY_DIR}
+          # Exclude the local .env file
+          scp -r --exclude=".env" . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${DEPLOY_DIR}
 
           ssh -i $SSH_AUTH_SOCK -l ${{ secrets.SSH_USER }} ${{ secrets.SSH_HOST }} << 'EOF'
             echo "Successfully connected to the Azure VM."
             
-            cd ${DEPLOY_DIR}
+            cd "${DEPLOY_DIR}" || exit 1 # Fails if cd fails
             
             # Create or update .env file on VM
             echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
@@ -59,11 +62,13 @@ jobs:
             echo "IMAGE_TAG=${COMMIT_SHA}" >> .env
 
             docker system prune -af
-            docker compose down
+            docker compose down --remove-orphans || true
             docker compose pull
             docker compose up -d
+            
             echo "Deployment completed successfully!"
-            docker ps
+            docker ps || exit 1 # Fail if docker ps fails
+            exit 0
           EOF
 
       - name: Cleanup SSH agent
