@@ -42,16 +42,16 @@ jobs:
         run: |
           echo "Connecting to Azure VM: ${{ secrets.SSH_HOST }}"
           
-          # Use a variable for the commit SHA
           COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          DEPLOY_DIR="~/my-simple-app"
+          
+          # Use scp to copy the entire codebase to the remote VM
+          scp -r . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${DEPLOY_DIR}
 
           ssh -i $SSH_AUTH_SOCK -l ${{ secrets.SSH_USER }} ${{ secrets.SSH_HOST }} << 'EOF'
             echo "Successfully connected to the Azure VM."
             
-            # Create deployment directory
-            DEPLOY_DIR="~/my-simple-app"
-            mkdir -p "$DEPLOY_DIR"
-            cd "$DEPLOY_DIR"
+            cd ${DEPLOY_DIR}
             
             # Create or update .env file on VM
             echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
