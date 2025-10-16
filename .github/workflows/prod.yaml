@@ -27,6 +27,12 @@ jobs:
       - name: Push images to Docker Hub
         run: docker compose push
       
+      - name: Add SSH host key to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
       - name: Set up SSH connection
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -39,19 +45,14 @@ jobs:
           # Use a variable for the commit SHA
           COMMIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
 
-          # Copy .env and docker-compose.yml to the VM
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            mkdir -p ~/my-simple-app
-            exit
-          EOF
-          scp .env ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/my-simple-app/.env
-          scp docker-compose.yaml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/my-simple-app/docker-compose.yaml
-
-          # Run deployment commands on the VM
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd ~/my-simple-app
-            echo "Deploying latest stack..."
-
+          ssh -i $SSH_AUTH_SOCK -l ${{ secrets.SSH_USER }} ${{ secrets.SSH_HOST }} << 'EOF'
+            echo "Successfully connected to the Azure VM."
+            
+            # Create deployment directory
+            DEPLOY_DIR="~/my-simple-app"
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+            
             # Create or update .env file on VM
             echo "MONGO_ADMIN_USER=${{ secrets.MONGO_ADMIN_USER }}" > .env
             echo "MONGO_ADMIN_PASS=${{ secrets.MONGO_ADMIN_PASS }}" >> .env
